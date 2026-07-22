@@ -1,7 +1,7 @@
 ---
 name: play-mud
 description: Play tbaMUD as a real player would - log in over telnet, explore and map the world room by room, fight, rest, shop, train, and pursue goals - while recording player state, a world map, and the friction a real player would hit. Use this skill whenever the user wants to play, explore, map, or test a MUD; asks the agent to reach a location, kill something, earn gold, level up, or find a guild in a MUD; wants a player-journey report on where a MUD confuses, blocks, bores, or overpowers players; or mentions tbaMUD, CircleMUD, DikuMUD, Midgaard, or a MUD on localhost:4000 - even if they do not say the word "skill" or name these scripts.
-tools: Bash, Read, Write, Edit, Glob, Grep/mode
+tools: Bash, Read, Write, Edit, Glob, Grep
 ---
 
 # Playing tbaMUD
