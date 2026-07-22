@@ -1,0 +1,10 @@
+{
+    "permissions": {
+        "allow": [
+            "Bash(python3 scripts/mud.py *)",
+            "Bash(python3 scripts/nav.py *)",
+            "Bash(tee *)",
+            "Bash(cat /tmp/*)"
+        ]
+    }
+}
