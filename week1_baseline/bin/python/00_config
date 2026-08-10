@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+cd "$(dirname "$0")/../../python/00_config"
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+VENV_PYTHON="$REPO_ROOT/.venv/bin/python"
+
+if [ ! -x "$VENV_PYTHON" ]; then
+  echo "Missing shared virtualenv at $REPO_ROOT/.venv" >&2
+  echo "Create it with:" >&2
+  echo "  python3 -m venv $REPO_ROOT/.venv" >&2
+  echo "  $REPO_ROOT/.venv/bin/pip install -r $(pwd)/requirements.txt" >&2
+  exit 1
+fi
+
+"$VENV_PYTHON" -m examples.example
