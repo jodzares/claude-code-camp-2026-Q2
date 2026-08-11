@@ -27,3 +27,18 @@ Thumbs.db
 # Local Claude steering (synced via private claude-steering repo, never committed here)
 /CLAUDE.md
 /.claude/
+# future lessons — added to main only when completed
+week1_baseline/ruby/02_the_registry/
+week1_baseline/ruby/03_prompt_builder/
+week1_baseline/ruby/04_api_client/
+week1_baseline/ruby/05_agent_loop/
+week1_baseline/ruby/06_the_logger/
+week1_baseline/ruby/07_the_run_dsl/
+week1_baseline/ruby/08_the_repl_loop/
+week1_baseline/ruby/09_global_executable/
+week1_baseline/ruby/10_standard_tool_library/
+week1_baseline/ruby/11_tui/
+week1_baseline/ruby/12_context/
+week1_baseline/ruby/bin/
+week1_baseline/ruby/log_viz/
+week1_baseline/ruby/ITERATIONS.md
