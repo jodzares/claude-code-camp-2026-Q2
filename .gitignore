@@ -28,7 +28,6 @@ Thumbs.db
 /CLAUDE.md
 /.claude/
 # future lessons — added to main only when completed
-week1_baseline/ruby/02_the_registry/
 week1_baseline/ruby/03_prompt_builder/
 week1_baseline/ruby/04_api_client/
 week1_baseline/ruby/05_agent_loop/
