@@ -18,3 +18,8 @@ pre-vocabularied. Max one new idiom per receipt.
 | `begin / rescue X => e / end` | try this; if error X is thrown, catch it as `e` | `try: / except X as e:` | w1 The Registry Ruby |
 | `hash.transform_keys(&:to_sym)` | turn every string key into a symbol key | (n/a — Python dict keys stay strings; `**args` unpacks to keyword params) | w1 The Registry Ruby |
 | `block.call(**args)` | run a stored code block, unpacking a hash into its args | `fn(**args)` | w1 The Registry Ruby |
+| `method(...) do |x:| ... end` | trailing block — attach a chunk of code to a call, to be run later | `@decorator` line directly above a `def` | w1 The Registry Python Port |
+| `hash[key]` | look up a key; returns `nil` if absent | `dict.get(key)` — returns `None` if absent | w1 The Registry Python Port |
+| `def f(parameters: {})` | keyword arg defaulting to an empty hash | `def f(parameters=None)` then `parameters or {}` — avoids one shared mutable default | w1 The Registry Python Port |
+| `hash.each_value { |t| ... }` | loop over the values, ignoring the keys | `for t in dict.values():` | w1 The Registry Python Port |
+| `require_relative "errors"` | pull in a sibling file from this folder | `from .errors import UnknownToolError` | w1 The Registry Python Port |
