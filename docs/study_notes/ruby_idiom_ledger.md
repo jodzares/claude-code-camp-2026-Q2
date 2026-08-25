@@ -23,3 +23,19 @@ pre-vocabularied. Max one new idiom per receipt.
 | `def f(parameters: {})` | keyword arg defaulting to an empty hash | `def f(parameters=None)` then `parameters or {}` — avoids one shared mutable default | w1 The Registry Python Port |
 | `hash.each_value { |t| ... }` | loop over the values, ignoring the keys | `for t in dict.values():` | w1 The Registry Python Port |
 | `require_relative "errors"` | pull in a sibling file from this folder | `from .errors import UnknownToolError` | w1 The Registry Python Port |
+| `def self.foo(x)` | a method that belongs to the type itself, not to one object | `@classmethod def foo(cls, x)` | w1 Prompt Builder Ruby |
+| `MODELS = {...}.freeze` | a named table fixed at load time and locked against edits | `MODELS: Final = {...}` (Python can't truly lock a dict) | w1 Prompt Builder Ruby |
+| `const_get(:MODELS)` | look up a constant by name on whichever type is asking | `getattr(cls, "MODELS")` | w1 Prompt Builder Ruby |
+| `raise NotImplementedError` | "any type built on me must define this itself" | `raise NotImplementedError` | w1 Prompt Builder Ruby |
+| `ENV.fetch("K")` | read an environment variable; blow up if it isn't set | `os.environ["K"]` | w1 Prompt Builder Ruby |
+| `ENV["K"] \|\|= value` | set it only if it isn't already set | `os.environ.setdefault("K", value)` | w1 Prompt Builder Ruby |
+| `hash.fetch(:key)` | read a key; blow up if absent (vs `hash[key]` → `nil`) | `d["key"]` | w1 Prompt Builder Ruby |
+| `x = case y when "a" then ... else ... end` | a branch that *produces* a value, assigned in one go | `if/elif/else` assigning to `x`, or a dict lookup | w1 Prompt Builder Ruby |
+| `list.map { \|x\| ... }` | build a new list by transforming every item | `[... for x in list]` | w1 Prompt Builder Ruby |
+| `hash.values` | just the values, keys discarded | `dict.values()` | w1 Prompt Builder Ruby |
+| `hash.keys.sort.join(", ")` | names, alphabetised, glued into one readable string | `", ".join(sorted(d))` | w1 Prompt Builder Ruby |
+| `:tokens` | a symbol used as a fixed label/value, not text to show a user | `"tokens"`, or an `Enum` member | w1 Prompt Builder Ruby |
+| `200_000` / `1_000_000.0` | underscores are digit separators, ignored by the language | identical in Python | w1 Prompt Builder Ruby |
+| `"#{a} #{b}"` | string interpolation — drop values into a string | `f"{a} {b}"` | w1 Prompt Builder Ruby |
+| `value.inspect` | render a value with its quotes/type visible, for error messages | `repr(value)` | w1 Prompt Builder Ruby |
+| `JSON.pretty_generate(x)` | turn data into indented JSON text | `json.dumps(x, indent=2)` | w1 Prompt Builder Ruby |
