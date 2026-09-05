@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>The Tool-Use Round Trip</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --paper: #EDF1F4;
+            --card: #FFFFFF;
+            --ink: #151F2A;
+            --ink-soft: #4A5A69;
+            --rule: #C3CDD7;
+            --machine: #0F766E;
+            --model: #6B4FBB;
+            --machine-bg: #E2F0EE;
+            --model-bg: #EDE8F8;
+            --halt-bg: #FBF3E4;
+            --halt-ink: #8A5A00;
+            --code-bg: #141C25;
+            --code-ink: #DFE7EE;
+            --serif: "Newsreader", Charter, "Bitstream Charter", Georgia, serif;
+            --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html {
+            -webkit-text-size-adjust: 100%
+        }
+
+        body {
+            margin: 0;
+            background: var(--paper);
+            color: var(--ink);
+            font-family: var(--serif);
+            font-size: 19px;
+            line-height: 1.62
+        }
+
+        .wrap {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 56px 28px 120px
+        }
+
+        /* ---------- masthead ---------- */
+        header.mast {
+            border-bottom: 2px solid var(--ink);
+            padding-bottom: 22px;
+            margin-bottom: 38px
+        }
+
+        .eyebrow {
+            font-family: var(--mono);
+            font-size: 12px;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            color: var(--ink-soft)
+        }
+
+        h1 {
+            font-size: clamp(34px, 6vw, 54px);
+            line-height: 1.05;
+            margin: .28em 0 .3em;
+            font-weight: 600;
+            letter-spacing: -.02em
+        }
+
+        .standfirst {
+            font-size: 21px;
+            color: var(--ink-soft);
+            margin: 0;
+            max-width: 44ch
+        }
+
+        .meta {
+            font-family: var(--mono);
+            font-size: 12.5px;
+            color: var(--ink-soft);
+            margin-top: 22px;
+            line-height: 1.8
+        }
+
+        .meta strong {
+            color: var(--ink);
+            font-weight: 600
+        }
+
+        /* ---------- thesis card ---------- */
+        .thesis {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: stretch;
+            border: 1.5px solid var(--ink);
+            background: var(--card);
+            margin: 0 0 46px
+        }
+
+        .thesis .side {
+            padding: 26px 24px
+        }
+
+        .thesis .side h3 {
+            font-family: var(--mono);
+            font-size: 11.5px;
+            letter-spacing: .15em;
+            text-transform: uppercase;
+            margin: 0 0 10px;
+            font-weight: 600
+        }
+
+        .thesis .model h3 {
+            color: var(--model)
+        }
+
+        .thesis .machine h3 {
+            color: var(--machine)
+        }
+
+        .thesis .side p {
+            margin: 0;
+            font-size: 17.5px;
+            line-height: 1.5
+        }
+
+        .thesis .side .no {
+            display: block;
+            margin-top: 10px;
+            color: var(--ink-soft);
+            font-size: 16px
+        }
+
+        .thesis .divider {
+            width: 1.5px;
+            background: var(--ink);
+            position: relative
+        }
+
+        .thesis .divider span {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--card);
+            border: 1.5px solid var(--ink);
+            border-radius: 999px;
+            font-family: var(--mono);
+            font-size: 10.5px;
+            letter-spacing: .1em;
+            padding: 5px 9px;
+            white-space: nowrap
+        }
+
+        /* ---------- headings ---------- */
+        h2 {
+            font-size: 30px;
+            font-weight: 600;
+            letter-spacing: -.015em;
+            margin: 64px 0 6px;
+            border-top: 2px solid var(--ink);
+            padding-top: 14px
+        }
+
+        h2 .num {
+            font-family: var(--mono);
+            font-size: 13px;
+            color: var(--ink-soft);
+            letter-spacing: .14em;
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500
+        }
+
+        h3.sub {
+            font-size: 22px;
+            font-weight: 600;
+            margin: 38px 0 4px
+        }
+
+        p {
+            margin: .85em 0
+        }
+
+        .lede {
+            color: var(--ink-soft)
+        }
+
+        /* ---------- actor tags ---------- */
+        .tag {
+            display: inline-block;
+            font-family: var(--mono);
+            font-size: 10.5px;
+            font-weight: 600;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            padding: 3px 8px;
+            border-radius: 3px;
+            vertical-align: middle;
+            white-space: nowrap
+        }
+
+        .tag.model {
+            background: var(--model-bg);
+            color: var(--model)
+        }
+
+        .tag.machine {
+            background: var(--machine-bg);
+            color: var(--machine)
+        }
+
+        /* ---------- THE SIGNATURE ELEMENT: the two lifelines ---------- */
+        .seq {
+            background: var(--card);
+            border: 1.5px solid var(--ink);
+            margin: 26px 0
+        }
+
+        .seq-head {
+            display: flex;
+            border-bottom: 1.5px solid var(--ink)
+        }
+
+        .seq-head div {
+            width: 50%;
+            padding: 11px 16px;
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .15em;
+            text-transform: uppercase
+        }
+
+        .seq-head .h-mine {
+            color: var(--machine);
+            background: var(--machine-bg);
+            border-right: 2px solid var(--ink)
+        }
+
+        .seq-head .h-model {
+            color: var(--model);
+            background: var(--model-bg)
+        }
+
+        .seq-row {
+            display: flex;
+            align-items: stretch
+        }
+
+        .half {
+            width: 50%;
+            padding: 9px 16px;
+            font-size: 16.5px;
+            line-height: 1.45
+        }
+
+        .half.mine {
+            border-right: 2px solid var(--ink)
+        }
+
+        .half.empty {
+            padding-top: 0;
+            padding-bottom: 0
+        }
+
+        .seq-row+.seq-row .half {
+            border-top: 1px solid var(--rule)
+        }
+
+        .seq-row+.seq-row .half.empty {
+            border-top: 1px solid transparent
+        }
+
+        .t {
+            font-family: var(--mono);
+            font-size: 11.5px;
+            font-weight: 600;
+            color: var(--ink-soft);
+            margin-right: 9px
+        }
+
+        .half .anchor {
+            display: block;
+            margin-top: 2px
+        }
+
+        /* crossing bands */
+        .cross {
+            border-top: 2px solid var(--ink);
+            border-bottom: 2px solid var(--ink);
+            padding: 14px 16px;
+            background: var(--paper)
+        }
+
+        .cross .dir {
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            display: block;
+            margin-bottom: 4px
+        }
+
+        .cross.out .dir {
+            color: var(--machine)
+        }
+
+        .cross.back .dir {
+            color: var(--model)
+        }
+
+        .cross p {
+            margin: 0;
+            font-size: 17px
+        }
+
+        .arrow {
+            display: block;
+            height: 2px;
+            background: var(--ink);
+            margin: 11px 0 0;
+            position: relative
+        }
+
+        .arrow::after {
+            content: "";
+            position: absolute;
+            top: -5px;
+            border-top: 6px solid transparent;
+            border-bottom: 6px solid transparent
+        }
+
+        .cross.out .arrow::after {
+            right: 0;
+            border-left: 11px solid var(--ink)
+        }
+
+        .cross.back .arrow::after {
+            left: 0;
+            border-right: 11px solid var(--ink)
+        }
+
+        /* the stop marker */
+        .stopband {
+            background: var(--halt-bg);
+            border-top: 2px solid var(--halt-ink);
+            border-bottom: 2px solid var(--halt-ink);
+            padding: 14px 16px
+        }
+
+        .stopband .flag {
+            font-family: var(--mono);
+            font-size: 11.5px;
+            font-weight: 600;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            color: var(--halt-ink);
+            display: block;
+            margin-bottom: 4px
+        }
+
+        .stopband p {
+            margin: 0;
+            font-size: 17px
+        }
+
+        /* not-yet-built rows */
+        .seq-row.future .half {
+            color: var(--ink-soft);
+            background: repeating-linear-gradient(135deg, transparent, transparent 7px, rgba(74, 90, 105, .05) 7px, rgba(74, 90, 105, .05) 14px)
+        }
+
+        .seq-row.future .half.mine {
+            border-right: 2px dashed var(--ink-soft)
+        }
+
+        .cross.future {
+            border-top: 2px dashed var(--ink-soft);
+            border-bottom: 2px dashed var(--ink-soft)
+        }
+
+        .cross.future .arrow {
+            background: transparent;
+            border-top: 2px dashed var(--ink-soft);
+            height: 0
+        }
+
+        .cross.future .arrow::after {
+            display: none
+        }
+
+        .futurelabel {
+            font-family: var(--mono);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            padding: 12px 16px 0
+        }
+
+        /* ---------- minimap ---------- */
+        .minimap {
+            background: var(--card);
+            border: 1px solid var(--rule);
+            border-left: 3px solid var(--ink);
+            padding: 12px 16px;
+            margin: 24px 0;
+            font-family: var(--mono);
+            font-size: 12.5px;
+            line-height: 1.85;
+            color: var(--ink-soft)
+        }
+
+        .minimap b {
+            display: block;
+            font-size: 10.5px;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            color: var(--ink);
+            margin-bottom: 6px
+        }
+
+        .minimap .on {
+            color: var(--ink);
+            font-weight: 600
+        }
+
+        /* ---------- code ---------- */
+        pre {
+            background: var(--code-bg);
+            color: var(--code-ink);
+            font-family: var(--mono);
+            font-size: 13.5px;
+            line-height: 1.65;
+            padding: 20px 22px;
+            overflow-x: auto;
+            margin: 20px 0
+        }
+
+        code {
+            font-family: var(--mono);
+            font-size: .86em;
+            background: #DDE4EB;
+            padding: 1px 5px;
+            border-radius: 3px
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            font-size: inherit
+        }
+
+        .codelabel {
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: .13em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            margin: 22px 0 -12px;
+            font-weight: 600
+        }
+
+        .plain {
+            background: var(--card);
+            border: 1px solid var(--rule);
+            font-family: var(--mono);
+            font-size: 13.5px;
+            line-height: 1.7;
+            padding: 18px 20px;
+            overflow-x: auto;
+            margin: 18px 0;
+            color: var(--ink)
+        }
+
+        .anchor {
+            font-family: var(--mono);
+            font-size: .72em;
+            color: var(--ink-soft)
+        }
+
+        /* ---------- the cast ---------- */
+        dl.cast {
+            margin: 22px 0;
+            padding: 0;
+            background: var(--card);
+            border: 1px solid var(--rule)
+        }
+
+        dl.cast dt {
+            font-family: var(--mono);
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--ink);
+            padding: 16px 20px 0
+        }
+
+        dl.cast dd {
+            margin: 2px 0 0;
+            padding: 0 20px 16px;
+            font-size: 17px;
+            color: var(--ink-soft);
+            line-height: 1.5;
+            border-bottom: 1px solid var(--rule)
+        }
+
+        dl.cast dd:last-child {
+            border-bottom: none
+        }
+
+        dl.cast dd b {
+            color: var(--ink);
+            font-weight: 600
+        }
+
+        /* ---------- signals ---------- */
+        dl.signals {
+            margin: 20px 0;
+            padding: 0
+        }
+
+        dl.signals dt {
+            font-family: var(--mono);
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 18px;
+            color: var(--ink)
+        }
+
+        dl.signals dd {
+            margin: 4px 0 0;
+            padding-left: 0;
+            font-size: 17.5px;
+            color: var(--ink-soft);
+            line-height: 1.5
+        }
+
+        dl.signals dd b {
+            color: var(--ink);
+            font-weight: 600
+        }
+
+        /* ---------- takeaways & why panels ---------- */
+        .takeaway {
+            border-left: 3px solid var(--ink);
+            padding: 2px 0 2px 20px;
+            margin: 26px 0
+        }
+
+        .takeaway h4 {
+            margin: 0 0 4px;
+            font-size: 19px;
+            font-weight: 600
+        }
+
+        .takeaway p {
+            margin: 0;
+            font-size: 17.5px;
+            color: var(--ink-soft)
+        }
+
+        .takeaway p+p {
+            margin-top: 8px
+        }
+
+        .why {
+            background: var(--card);
+            border: 1px solid var(--rule);
+            padding: 20px 24px;
+            margin: 20px 0
+        }
+
+        .why h4 {
+            margin: 0 0 2px;
+            font-size: 20px;
+            font-weight: 600
+        }
+
+        .why .who {
+            font-family: var(--mono);
+            font-size: 11px;
+            letter-spacing: .13em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            display: block;
+            margin-bottom: 10px
+        }
+
+        .why p {
+            margin: .6em 0;
+            font-size: 17.5px
+        }
+
+        .why p.cost {
+            color: var(--ink-soft);
+            font-size: 16.5px;
+            margin-bottom: 0
+        }
+
+        /* ---------- glossary ---------- */
+        dl.gloss {
+            margin: 22px 0;
+            padding: 0;
+            column-count: 1
+        }
+
+        dl.gloss dt {
+            font-family: var(--mono);
+            font-size: 13.5px;
+            font-weight: 600;
+            margin-top: 15px;
+            color: var(--ink)
+        }
+
+        dl.gloss dd {
+            margin: 1px 0 0;
+            font-size: 16.5px;
+            color: var(--ink-soft);
+            line-height: 1.45
+        }
+
+        footer {
+            margin-top: 80px;
+            border-top: 2px solid var(--ink);
+            padding-top: 18px;
+            font-family: var(--mono);
+            font-size: 12.5px;
+            color: var(--ink-soft);
+            line-height: 1.8
+        }
+
+        @media (max-width:680px) {
+            body {
+                font-size: 17.5px
+            }
+
+            .wrap {
+                padding: 36px 18px 80px
+            }
+
+            .thesis {
+                grid-template-columns: 1fr
+            }
+
+            .thesis .divider {
+                width: auto;
+                height: 1.5px
+            }
+
+            .seq-head {
+                display: none
+            }
+
+            .seq-row {
+                display: block
+            }
+
+            .half {
+                width: 100%;
+                border-right: none !important
+            }
+
+            .half.empty {
+                display: none
+            }
+
+            .half.mine {
+                border-left: 4px solid var(--machine)
+            }
+
+            .half.model {
+                border-left: 4px solid var(--model)
+            }
+
+            .half.mine::before {
+                content: "MY MACHINE";
+                display: block;
+                font-family: var(--mono);
+                font-size: 9.5px;
+                letter-spacing: .13em;
+                color: var(--machine);
+                font-weight: 600;
+                margin-bottom: 3px
+            }
+
+            .half.model::before {
+                content: "THE MODEL";
+                display: block;
+                font-family: var(--mono);
+                font-size: 9.5px;
+                letter-spacing: .13em;
+                color: var(--model);
+                font-weight: 600;
+                margin-bottom: 3px
+            }
+
+            .seq-row+.seq-row .half {
+                border-top: 1px solid var(--rule)
+            }
+
+            pre {
+                font-size: 12px;
+                padding: 16px
+            }
+        }
+
+        @media print {
+            body {
+                background: #fff
+            }
+
+            .seq,
+            .thesis,
+            .why {
+                break-inside: avoid
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+
+        <header class="mast">
+            <div class="eyebrow">Personal study note · cross-lesson · living document</div>
+            <h1>The Tool-Use<br>Round&nbsp;Trip</h1>
+            <p class="standfirst">One question out, one reply back, repeated until the model says it is done.</p>
+            <div class="meta">
+                <strong>Not graded documentation.</strong> Graded docs live in <code>docs/journal/</code>.<br>
+                Covers everything built so far: 00 Config · 01 Struct Skeleton · 02 The Registry · 03 Prompt Builder ·
+                04 API Client.<br>
+                <strong>My code currently stops at step t19.</strong> That marker moves down the page as I finish
+                lessons.
+            </div>
+        </header>
+
+        <section class="thesis">
+            <div class="side model">
+                <h3>The model</h3>
+                <p>Reads an English question and decides what to do next.</p>
+                <span class="no">Can touch nothing. No filesystem, no network, no MUD.</span>
+            </div>
+            <div class="divider"><span>SO THEY TAKE TURNS</span></div>
+            <div class="side machine">
+                <h3>My machine</h3>
+                <p>Owns the filesystem, the network, the MUD connection.</p>
+                <span class="no">Cannot choose. It only runs what it is told to run.</span>
+            </div>
+        </section>
+
+        <p class="lede">Two actors, and only one boundary between them. Everything in this document is either something
+            happening on one side of that boundary, or something crossing it. There are only two crossings in the whole
+            trip.</p>
+
+        <h2><span class="num">Part one</span>Why this isn't circular</h2>
+
+        <p>The first time I saw this loop it looked pointless. Why ask the model to list a directory, when listing a
+            directory is something my own machine has to do anyway? If I'm doing the work regardless, what is the model
+            for?</p>
+
+        <p>Because <strong>I never asked for a listing.</strong> I asked an English question and handed over a menu of
+            things I am willing to do. The model decided that a listing was the way to answer it, and decided which
+            folder to list.</p>
+
+        <p>For one trivial question I could have written those steps myself. For a real question I can't: which folder,
+            which file, and whether one read is even enough all depend on results that don't exist at the moment I ask.
+        </p>
+
+        <div class="takeaway">
+            <h4>The division of labour, in one line.</h4>
+            <p>The model decides what to do next, from the question and everything it has seen so far. My machine acts,
+                because it is the only one that can. That back-and-forth — ask, run, report, continue — is the whole
+                idea.</p>
+        </div>
+
+        <h2><span class="num">Part two</span>The scenario</h2>
+
+        <p class="lede">One scenario runs through this entire document. It never changes.</p>
+
+        <p><strong>I ask: "Is there anything in my notes about the dragon?"</strong> My notes folder holds three files:
+            <code>quests.md</code>, <code>bestiary.md</code>, <code>shopping.md</code>. My program offers the model two
+            things it is allowed to ask for: read a file, or list a directory.</p>
+
+        <p>One honest note about this scenario. The example file that actually ships in my repo asks a duller question —
+            <em>"What files are in the current directory?"</em> — with those same two tools <span
+                class="anchor">[week1_baseline/ruby/04_api_client/examples/example.rb]</span>. I've swapped in the
+            dragon question because it needs <em>two</em> tools in sequence rather than one, which is what makes the
+            loop visible. Everything else on this page — the settings, the model name, the system prompt, the tool
+            descriptions, the shape of the request and the reply — is real and taken from my own files.</p>
+
+        <h2><span class="num">Part three</span>The cast, before anything moves</h2>
+
+        <p class="lede">Every name used later, defined once here, in the order each thing comes into existence. Nothing
+            in this list acts yet. They are just the parts on the table.</p>
+
+        <dl class="cast">
+            <dt>the settings file</dt>
+            <dd>A small text file of choices I am allowed to change without touching anyone's code: which provider,
+                which model, whether to use my own prompt. It is committed to the repo and travels with it. <span
+                    class="anchor">[.boukensha/settings.yaml]</span></dd>
+
+            <dt>the secrets file</dt>
+            <dd>A separate file holding the one thing that must never reach a public repo: my API key, the password-like
+                string that proves the request is mine and gets me billed for it. Deliberately hidden from version
+                control. <span class="anchor">[.boukensha/.env]</span></dd>
+
+            <dt>the config</dt>
+            <dd>The component that boots first and reads both those files once, then hands values out to whoever asks.
+                <b>One door in, one answer out</b> — so nothing in the program disagrees about what the settings say.
+                <span class="anchor">[config.rb]</span></dd>
+
+            <dt>the task</dt>
+            <dd>One named role the program can play, with its own provider, model and prompt. Today there is exactly
+                one, called <code>player</code>. The nesting exists so a second role can be added later without renaming
+                anything. <span class="anchor">[tasks/player.rb]</span></dd>
+
+            <dt>the system prompt</dt>
+            <dd>A standing instruction sent with every request, telling the model who it is being. Mine says: <em>"You
+                    are my MUD jodza-player."</em> It is resolved by a ladder — if I switched the override on and my
+                file exists, mine is used; otherwise the one shipped with the code. <span
+                    class="anchor">[.boukensha/prompts/player/system.md]</span></dd>
+
+            <dt>the context</dt>
+            <dd><b>The memory of one run.</b> It holds three things: the system prompt, the list of messages so far, and
+                the table of tools on offer. It stores; it never acts. <span class="anchor">[context.rb]</span></dd>
+
+            <dt>a message</dt>
+            <dd>One turn in the conversation: who said it, and what was said. The <em>who</em> is called the role — me,
+                the model, or the result of a tool. <span class="anchor">[message.rb]</span></dd>
+
+            <dt>a tool</dt>
+            <dd>One thing my program is willing to do, described in two halves. The half the model sees: a name, a
+                sentence of description, and the list of arguments it accepts. The half the model never sees: my actual
+                code that does the work. <span class="anchor">[tool.rb]</span></dd>
+
+            <dt>the registry</dt>
+            <dd>The component that <b>builds a tool and files it into the context's table in one move</b>, so it is
+                impossible to build one and forget to file it. It also knows how to look a tool up by name and run it —
+                although nothing calls on that ability yet. <span class="anchor">[registry.rb]</span></dd>
+
+            <dt>the provider</dt>
+            <dd>A single word in the settings file naming which vendor to talk to. Mine says <code>anthropic</code>. It
+                is a <b>word, not a file</b> — the trap I fell into twice.</dd>
+
+            <dt>an adapter</dt>
+            <dd>One file per vendor, holding everything specific to that vendor: its web address, its headers, its exact
+                request shape, and the list of models it accepts. Five exist; exactly one is built per run. <span
+                    class="anchor">[backends/anthropic.rb]</span></dd>
+
+            <dt>the builder</dt>
+            <dd>The component that knows no vendor at all. It holds the context and one adapter, and forwards five fixed
+                questions to that adapter: format the messages, format the tools, assemble the whole request, what
+                headers, what address. <b>Those five questions are the contract</b> — a vendor is supported exactly when
+                some adapter can answer all five. <span class="anchor">[prompt_builder.rb]</span></dd>
+
+            <dt>the client</dt>
+            <dd>The newest component, and the only one that touches the network. It holds <b>one</b> thing — the builder
+                — asks it for the address, the headers and the body, sends them, retries what is worth retrying, and
+                hands back what came home. It never learns the word <code>anthropic</code>. <span
+                    class="anchor">[client.rb]</span></dd>
+
+            <dt>the runner</dt>
+            <dd>The file I actually execute. It is the assembly point: it creates all of the above in order, adds the
+                question, and prints whatever comes back. <span class="anchor">[examples/example.rb]</span></dd>
+
+            <dt>the launcher</dt>
+            <dd>A two-line shortcut that steps into the module's folder and starts the runner with that module's own
+                dependency list. <span class="anchor">[week1_baseline/bin/ruby/04_api_client]</span></dd>
+        </dl>
+
+        <h2><span class="num">Part four</span>The whole trip, on two lifelines</h2>
+
+        <p class="lede">Read this top to bottom. The left column is my machine, the right column is the model, and the
+            heavy vertical line between them is the boundary. Bands that run all the way across are the moments
+            something crosses it. Everything below the amber marker is not built yet.</p>
+
+        <div class="seq">
+            <div class="seq-head">
+                <div class="h-mine">My machine</div>
+                <div class="h-model">The model</div>
+            </div>
+
+            <div class="seq-row">
+                <div class="half mine"><span class="t">t0</span>The launcher steps into the module folder and starts the
+                    runner. <span class="anchor">[bin/ruby/04_api_client]</span></div>
+                <div class="half model empty"></div>
+            </div>
+            <div class="seq-row">
+                <div class="half mine"><span class="t">t1</span>The config boots: it works out which folder holds the
+                    settings, loads the secrets, and reads the settings file once. <span
+                        class="anchor">[config.rb]</span></div>
+                <div class="half model empty"></div>
+            </div>
+            <div class="seq-row">
+                <div class="half mine"><span class="t">t2</span>The player task is read: provider
+                    <code>anthropic</code>, model <code>claude-haiku-4-5</code>, prompt override switched on.</div>
+                <div class="half model empty"></div>
+            </div>
+            <div class="seq-row">
+                <div class="half mine"><span class="t">t3</span>The prompt ladder is walked. The override is on and my
+                    file exists, so my prompt wins. <span class="anchor">[tasks/base.rb]</span></div>
+                <div class="half model empty"></div>
+            </div>
+            <div class="seq-row">
+                <div class="half mine"><span class="t">t4</span>The context is born, holding the prompt, an empty
+                    message list and an empty tool table. <span class="anchor">[context.rb]</span></div>
+                <div class="half model empty"></div>
+            </div>
+            <div class="seq-row">
+                <div class="half mine"><span class="t">t5</span>The registry is created, pointing at that one context.
+                    <span class="anchor">[registry.rb]</span></div>
+                <div class="half model empty"></div>
+            </div>
+            <div class="seq-row">
+                <div class="half mine"><span class="t">t6</span>Two tools are built and filed into the context's table:
+                    <code>read_file</code> and <code>list_directory</code>.</div>
+                <div class="half model empty"></div>
+            </div>
+            <div class="seq-row">
+                <div class="half mine"><span class="t">t7</span>My question is added to the context as a message from
+                    me.</div>
+                <div class="half model empty"></div>
+            </div>
+            <div class="seq-row">
+                <div class="half mine"><span class="t">t8</span>The provider word is read and the matching adapter is
+                    built. The model name is checked against that vendor's list; a typo would stop the run here. <span
+                        class="anchor">[backends/anthropic.rb]</span></div>
+                <div class="half model empty"></div>
+            </div>
+            <div class="seq-row">
+                <div class="half mine"><span class="t">t9</span>The builder is created, holding the context and that one
+                    adapter. <span class="anchor">[prompt_builder.rb]</span></div>
+                <div class="half model empty"></div>
+            </div>
+            <div class="seq-row">
+                <div class="half mine"><span class="t">t10</span>The client is created, holding the builder and nothing
+                    else. <span class="anchor">[client.rb]</span></div>
+                <div class="half model empty"></div>
+            </div>
+            <div class="seq-row">
+                <div class="half mine"><span class="t">t11</span>The client asks the builder its three questions: what
+                    address, what headers, what body. The builder forwards each to the adapter.</div>
+                <div class="half model empty"></div>
+            </div>
+
+            <div class="cross out">
+                <span class="dir">Crossing one — out</span>
+                <p><span class="t">t12</span>The request leaves my machine, carrying the system prompt, the question,
+                    and the menu of two tools. Everything before this line was free, offline and repeatable. From here
+                    it costs money.</p>
+                <span class="arrow" aria-hidden="true"></span>
+            </div>
+
+            <div class="seq-row">
+                <div class="half mine empty"></div>
+                <div class="half model"><span class="t">t13</span>It reads the system prompt and my question.</div>
+            </div>
+            <div class="seq-row">
+                <div class="half mine empty"></div>
+                <div class="half model"><span class="t">t14</span>It reads the two tool descriptions I sent along.</div>
+            </div>
+            <div class="seq-row">
+                <div class="half mine empty"></div>
+                <div class="half model"><span class="t">t15</span>It judges that listing a directory fits the question
+                    better than reading a file, and picks <code>list_directory</code>.</div>
+            </div>
+            <div class="seq-row">
+                <div class="half mine empty"></div>
+                <div class="half model"><span class="t">t16</span>It invents the argument I deliberately left blank: the
+                    path becomes <code>"notes"</code>.</div>
+            </div>
+
+            <div class="cross back">
+                <span class="dir">Crossing two — back</span>
+                <p><span class="t">t17</span>The reply arrives. It carries a flag saying the model stopped on purpose,
+                    and a block naming the tool it wants run and the argument it chose.</p>
+                <span class="arrow" aria-hidden="true"></span>
+            </div>
+
+            <div class="seq-row">
+                <div class="half mine"><span class="t">t18</span>The client turns the reply's characters into data I can
+                    reach into by name, and hands the whole thing back untouched. <span
+                        class="anchor">[client.rb]</span></div>
+                <div class="half model empty"></div>
+            </div>
+
+            <div class="stopband">
+                <span class="flag">▓ My code stops here ▓</span>
+                <p><span class="t">t19</span>The runner prints the reply. The process exits. Nothing looks at the flag;
+                    nothing runs the tool the model asked for. <span class="anchor">[examples/example.rb]</span></p>
+            </div>
+
+            <div class="futurelabel">Not built yet — this is where lesson 05 goes</div>
+
+            <div class="seq-row future">
+                <div class="half mine"><span class="t">t20</span>Notice the flag, and pull the tool name and argument
+                    out of the reply.</div>
+                <div class="half model empty"></div>
+            </div>
+            <div class="seq-row future">
+                <div class="half mine"><span class="t">t21</span>Look up the name <code>list_directory</code> in the
+                    registry and run my real code with the path <code>"notes"</code>. It already knows how to do this —
+                    it just isn't wired to the reply. <span class="anchor">[registry.rb]</span></div>
+                <div class="half model empty"></div>
+            </div>
+            <div class="seq-row future">
+                <div class="half mine"><span class="t">t22</span>File the result back into the context as a new message,
+                    quoting the identifier from the model's request.</div>
+                <div class="half model empty"></div>
+            </div>
+            <div class="cross out future">
+                <span class="dir">Crossing three — out again</span>
+                <p><span class="t">t23</span>Send the whole conversation again, now one exchange longer. That is trip
+                    two.</p>
+                <span class="arrow" aria-hidden="true"></span>
+            </div>
+        </div>
+
+        <div class="takeaway">
+            <h4>Count the columns.</h4>
+            <p>Twelve steps on my side before anything leaves. Four on the model's. And exactly two crossings.</p>
+            <p>That asymmetry is the point of four whole lessons. Config, the three shapes, the registry, the builder
+                and the client all exist so that one arrow crosses that line correctly, carrying the right thing, in the
+                shape one particular vendor demands.</p>
+        </div>
+
+        <h2><span class="num">Part five</span>Boot — everything before the crossing</h2>
+
+        <div class="minimap">
+            <b>Where we are</b>
+            <span class="on">t0–t11 my machine · boot</span><br>
+            t12 crossing out · t13–t16 the model · t17 crossing back · t18–t19 my machine · t20+ not built
+        </div>
+
+        <p>Steps t0 to t11 all happen on my machine, in that order, and the order is forced — each step needs the one
+            above it to have finished.</p>
+
+        <p><strong>The config must be first</strong>, because the prompt, the provider and the model all come out of it.
+            <strong>The context must exist before the tools</strong>, because the tools are filed into it. <strong>The
+                adapter must be built before the builder</strong>, because the builder is handed one and never goes
+            looking. <strong>The builder must exist before the client</strong>, because the client holds nothing else.
+        </p>
+
+        <p>The single most useful fact about this whole stretch: <strong>none of it costs anything.</strong> Nothing has
+            left the machine. A completely fake API key would have passed every one of these twelve steps. That is why
+            the previous three lessons could be built and tested without ever spending a penny — and it is exactly what
+            changes at t12.</p>
+
+        <h3 class="sub">What the two tools look like at t6</h3>
+
+        <p>Each tool is declared with a name, a sentence of description, and the arguments it accepts. Note what is
+            <em>not</em> here: any actual value.</p>
+
+        <p class="codelabel">The menu, as declared in the runner</p>
+        <div class="plain">name: "read_file"
+            description: "Read the contents of a file from disk"
+            accepts: path — text — "The file path to read"
+
+            name: "list_directory"
+            description: "List files in a directory"
+            accepts: path — text — "The directory path to list"</div>
+
+        <p>I declared <em>that</em> <code>list_directory</code> takes a path. I did not say <em>which</em> path, because
+            at the moment I write that line I don't know what anyone will ask for. Filling that blank is the model's
+            job, and it is the single most important thing it does.</p>
+
+        <h2><span class="num">Part six</span>Crossing one — what actually leaves</h2>
+
+        <div class="minimap">
+            <b>Where we are</b>
+            t0–t11 my machine · boot<br>
+            <span class="on">t12 crossing out</span> · t13–t16 the model · t17 crossing back · t18–t19 my machine · t20+
+            not built
+        </div>
+
+        <p>The client asks the builder three questions and gets three answers, all of which the builder obtained from
+            the Anthropic adapter. Then it sends them.</p>
+
+        <p class="codelabel">Answer one — the address</p>
+        <div class="plain">https://api.anthropic.com/v1/messages</div>
+
+        <p class="codelabel">Answer two — the headers</p>
+        <div class="plain">Content-Type: application/json
+            x-api-key: (my secret key, from the secrets file)
+            anthropic-version: 2023-06-01</div>
+
+        <p>Headers are the labels on the envelope rather than the letter inside: what format this is, who is sending it,
+            which version of the vendor's rules to apply. This is where the key rides, and it is the reason the secrets
+            file must never reach a public repo.</p>
+
+        <p class="codelabel">Answer three — the body, sent to the address above</p>
+        <pre><code>{
+  "model": "claude-haiku-4-5",
+  "system": "You are my MUD jodza-player",
+  "max_tokens": 1024,
+
+  "tools": [
+    { "name": "read_file",
+      "description": "Read the contents of a file from disk",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string",
+                    "description": "The file path to read" } },
+        "required": ["path"] } },
+
+    { "name": "list_directory",
+      "description": "List files in a directory",
+      "input_schema": {
+        "type": "object",
+        "properties": {
+          "path": { "type": "string",
+                    "description": "The directory path to list" } },
+        "required": ["path"] } }
+  ],
+
+  "messages": [
+    { "role": "user",
+      "content": "Is there anything in my notes about the dragon?" }
+  ]
+}</code></pre>
+
+        <p>Read it as three things bundled together. <code>system</code> is who the model is being.
+            <code>messages</code> is the conversation, currently one line long. <code>tools</code> is the menu. One
+            send, all three together — the model cannot ask for a menu later.</p>
+
+        <div class="takeaway">
+            <h4>The envelope is theirs. The contents are mine.</h4>
+            <p>The field names in that request are fixed by the vendor. Rename <code>tools</code> to
+                <code>functions</code> and the request is rejected outright.</p>
+            <p>What goes inside those fields is entirely mine. Calling the tool <code>file_reading</code> instead of
+                <code>read_file</code> works perfectly. Calling it <code>tool_2</code> with no description also works,
+                and chooses badly, because the model has nothing to judge from. <strong>Tool names and descriptions are
+                    prompt text, not documentation.</strong></p>
+        </div>
+
+        <h2><span class="num">Part seven</span>The model's side</h2>
+
+        <div class="minimap">
+            <b>Where we are</b>
+            t0–t11 my machine · boot · t12 crossing out<br>
+            <span class="on">t13–t16 the model</span> · t17 crossing back · t18–t19 my machine · t20+ not built
+        </div>
+
+        <p>Four steps, and my machine is idle for all of them. The model reads the standing instruction, reads my
+            question, reads the two descriptions, and makes two decisions: <strong>which tool</strong>, and <strong>what
+                argument</strong>.</p>
+
+        <p>The second decision is the one worth staring at. The value <code>"notes"</code> appears nowhere in my code.
+            It was produced from my English sentence — I said "my notes", and it turned that into a folder name —
+            constrained only by the shape I declared, which said this argument must be text. Ask a different question
+            and the same tool comes back with a different value.</p>
+
+        <p>And it ran nothing. It cannot. It asked, by name, with an argument it chose, and then stopped.</p>
+
+        <h2><span class="num">Part eight</span>Crossing two — what comes back</h2>
+
+        <div class="minimap">
+            <b>Where we are</b>
+            t0–t11 my machine · boot · t12 crossing out · t13–t16 the model<br>
+            <span class="on">t17 crossing back · t18–t19 my machine</span> · t20+ not built
+        </div>
+
+        <p class="codelabel">The reply, as it arrives</p>
+        <pre><code>{
+  "role": "assistant",
+  "content": [
+    { "type": "text",
+      "text": "Let me check what's in your notes." },
+
+    { "type": "tool_use",
+      "id": "toolu_01H1b2...",
+      "name": "list_directory",
+      "input": { "path": "notes" } }
+  ],
+  "stop_reason": "tool_use",
+  "usage": { "input_tokens": 651, "output_tokens": 65 }
+}</code></pre>
+
+        <p>Three signals in that reply, and they do different jobs.</p>
+
+        <dl class="signals">
+            <dt>stop_reason: "tool_use"</dt>
+            <dd><b>The flag.</b> The model stopped mid-answer on purpose, because it needs a result before it can
+                continue. This is not an error and not a failure. The alternative value is <code>end_turn</code>,
+                meaning finished.</dd>
+
+            <dt>the tool_use block</dt>
+            <dd><b>The detail.</b> Which tool, which argument it filled in, and an identifier I must quote when I send
+                the result back so the model can match my answer to its question. The flag says <em>something is
+                    wanted</em>; this block says <em>what</em>. They arrive in the same reply, so nothing is hidden and
+                nothing needs a second request to discover.</dd>
+
+            <dt>usage</dt>
+            <dd>What the exchange cost, counted in tokens — the chunks of text a model is billed by, roughly
+                three-quarters of a word each.</dd>
+        </dl>
+
+        <h3 class="sub">What my code does with all that: nothing</h3>
+
+        <p>At t18 the client converts the whole reply into data I could reach into by name, and stops there. It pulls
+            nothing out. At t19 the runner prints it and the process ends.</p>
+
+        <p><strong>This is the correct stopping place, and it is deliberate.</strong> Had the client extracted "the
+            answer" here — reaching for the text of the first block — it would have kept <em>"Let me check what's in
+                your notes"</em> and thrown away the instruction sitting in the second block, along with the flag and
+            the cost. On a reply where the model calls a tool and says nothing at all, that extraction would have
+            produced an empty result from a perfectly good reply.</p>
+
+        <h2><span class="num">Part nine</span>Where this is going</h2>
+
+        <div class="minimap">
+            <b>Where we are</b>
+            t0–t11 my machine · t12 crossing out · t13–t16 the model · t17 crossing back · t18–t19 my machine<br>
+            <span class="on">t20 onwards — not built</span>
+        </div>
+
+        <p class="lede">Nothing in this part exists in my repo. It is here because the two parts above make no sense
+            without it — a flag nobody reads and an identifier nobody quotes are only meaningful once something uses
+            them.</p>
+
+        <p>The steps below the amber marker close the loop: notice the flag, run the tool, report the result, send
+            everything again. That produces a second trip through the same two crossings, and then a third.</p>
+
+        <p class="codelabel">Trip two — the model chooses again, with new information</p>
+        <div class="plain">out the whole conversation again, now four items long:
+            my question · the menu · the model's request · my result
+            ["quests.md", "bestiary.md", "shopping.md"]
+
+            model reads the file list, picks a DIFFERENT tool: read_file
+            fills path = "notes/bestiary.md"
+
+            back stop_reason: "tool_use" → loop continues</div>
+
+        <p>That path could not have existed one trip earlier. The model only knew the file was called
+            <code>bestiary.md</code> because my machine listed the folder and told it.</p>
+
+        <p class="codelabel">Trip three — enough information, so it answers</p>
+        <div class="plain">out the whole conversation again, now including the file's contents
+
+            model has enough. No tool needed.
+
+            back stop_reason: "end_turn"
+            text: "Yes — bestiary.md says the dragon guards the eastern gate."
+
+            → LOOP ENDS</div>
+
+        <div class="takeaway">
+            <h4>The conversation grows every trip; the model remembers nothing.</h4>
+            <p>The whole history is re-sent each time — the original question, every tool request, every result. Between
+                calls the model retains nothing at all. <strong>The context on my side is the only memory in the
+                    system.</strong> That is why the context was built before anything that talks to a model, and why it
+                grows rather than being replaced.</p>
+        </div>
+
+        <div class="takeaway">
+            <h4>The exit is <code>end_turn</code>.</h4>
+            <p>Trips repeat for as long as the flag says <code>tool_use</code>. The first <code>end_turn</code> stops
+                the loop. That single comparison is the difference between a program that asks once and an agent that
+                works until it is done.</p>
+        </div>
+
+        <div class="takeaway">
+            <h4>One string has to match on both sides.</h4>
+            <p>The reply says <code>"list_directory"</code>. My code will look up exactly that text in the registry.
+                Rename the tool on one side only and the lookup finds nothing — and the registry stops loudly with a
+                named error rather than quietly pretending it worked.</p>
+        </div>
+
+        <h2><span class="num">Part ten</span>Why each shape is that shape</h2>
+
+        <p class="lede">Five components, five decisions. Each one has a real cost, listed honestly.</p>
+
+        <div class="why">
+            <h4>The settings live outside the code</h4>
+            <span class="who">00 Config · t1–t3</span>
+            <p>Two different reasons, one mechanism. My API key must never reach a public repo, or I lose money. My
+                model choice must be changeable without editing anyone else's source. So both are exiled into files —
+                but into <em>different</em> files, split by one question: does this get committed to the repo, or hidden
+                from it?</p>
+            <p class="cost"><b>The cost:</b> the prompt ladder falls through silently. If the override switch is off, or
+                my file is misnamed by one character, the shipped default is used and the run prints a perfectly happy
+                result. I only catch it by noticing the wrong prompt in the output.</p>
+        </div>
+
+        <div class="why">
+            <h4>The tool table lives on the context, not the registry</h4>
+            <span class="who">01 Struct Skeleton · 02 The Registry · t4–t6</span>
+            <p>The context is the memory of the run, and the tools are part of what the model must be told, so they
+                belong in the memory alongside the messages. The registry holds only a pointer to that one context and
+                files through it.</p>
+            <p>Splitting them the other way would give two owners of the same table, and two owners drift apart.</p>
+            <p class="cost"><b>The cost:</b> the boundary is smudged — the registry can file a tool, but so can the
+                context directly. Andrew flags this as untidy and leaves the clean split for later.</p>
+        </div>
+
+        <div class="why">
+            <h4>Five adapters, not one component that knows five vendors</h4>
+            <span class="who">03 Prompt Builder · t8–t9 · the money shot</span>
+            <p>Every vendor wants the same conversation in a differently shaped envelope. That knowledge could live in
+                one component branching five ways at every step, or in five small components that each know exactly one
+                vendor.</p>
+            <p>Five wins, for a reason sharper than tidiness: <strong>vendors disagree about position, not just
+                    naming.</strong> My system prompt sits in its own top-level slot for Anthropic. For OpenAI it has to
+                become the first entry inside the message list, making that list four items long instead of three. A
+                table of renamings can change a label; it cannot move an item into a list. That is why each adapter
+                assembles its own envelope from scratch.</p>
+            <p class="cost"><b>The cost:</b> three of the five adapters carry identical tool-formatting code, and the
+                five-question contract isn't actually enforced anywhere — it is a convention the five happen to keep.
+            </p>
+        </div>
+
+        <div class="why">
+            <h4>The client holds the builder, and nothing else</h4>
+            <span class="who">04 API Client · t10–t11</span>
+            <p>To send anything you need three facts: address, headers, body. All three are vendor-specific and all
+                three already have an owner. So the client holds the one component that can answer all three, asks it
+                the same three questions every run, and never learns which vendor it is talking to.</p>
+            <p>Holding the adapter directly would mean holding two things instead of one, because the body cannot be
+                built from vendor knowledge alone — it needs the conversation too.</p>
+            <p class="cost"><b>The cost:</b> the client is useless without a builder. There is no way to push a
+                hand-written request through it.</p>
+        </div>
+
+        <div class="why">
+            <h4>Nothing prewritten does the sending</h4>
+            <span class="who">04 API Client · t12</span>
+            <p>A vendor's own prewritten library would do the sending and hide how. Doing it by hand means the exact
+                bytes leaving my machine are in a file I can open. With five vendors that is five libraries that
+                disagree with each other — Anthropic's own ships in two languages that don't have matching features — so
+                "use the library" is not one answer, it's five answers with five different holes. It is also a hard
+                constraint of this project.</p>
+            <p class="cost"><b>The cost is real and I hit it.</b> Libraries quietly locate the files my machine uses to
+                verify a secure website is genuine. By hand, I have to point at those files, and they sit in different
+                places on macOS and on WSL2. The shipped code solves it by pointing at <em>nothing</em> and letting the
+                operating system answer the question about itself. Verification stays switched on; only the hard-coded
+                path is dropped.</p>
+        </div>
+
+        <h2><span class="num">Part eleven</span>Glossary</h2>
+
+        <dl class="gloss">
+            <dt>adapter</dt>
+            <dd>One file holding everything specific to a single vendor. Also called a backend in the code.</dd>
+            <dt>agent loop</dt>
+            <dd>The repeating cycle of ask, run, report, continue, until the model says it is finished. Not built yet.
+            </dd>
+            <dt>API key</dt>
+            <dd>A secret string that proves a request is mine and gets me billed for it.</dd>
+            <dt>argument</dt>
+            <dd>A value handed to a tool when it runs. Here, the folder or file path.</dd>
+            <dt>backoff</dt>
+            <dd>Waiting longer before each retry, so a struggling server is not hammered. Mine waits half a second, then
+                one, then two.</dd>
+            <dt>context</dt>
+            <dd>The memory of one run: the standing instruction, the messages so far, and the tool table.</dd>
+            <dt>dispatch</dt>
+            <dd>The act of looking a tool up by name and running it. An action, not a thing.</dd>
+            <dt>endpoint</dt>
+            <dd>The exact web address a request is sent to.</dd>
+            <dt>environment variable</dt>
+            <dd>A named value the operating system hands a program at startup, set outside the code.</dd>
+            <dt>headers</dt>
+            <dd>Labels on the envelope rather than the letter inside: format, identity, version.</dd>
+            <dt>JSON</dt>
+            <dd>A common text format for structured data — labelled fields, lists, and nesting.</dd>
+            <dt>message</dt>
+            <dd>One turn in the conversation: who said it and what was said.</dd>
+            <dt>navigable data</dt>
+            <dd>Text converted into a structure whose parts can be reached by name.</dd>
+            <dt>payload</dt>
+            <dd>The body of a request — the actual letter inside the envelope.</dd>
+            <dt>POST</dt>
+            <dd>Sending a body to a web address and waiting for a reply.</dd>
+            <dt>provider</dt>
+            <dd>A word in the settings naming which vendor to use. A word, not a file.</dd>
+            <dt>registry</dt>
+            <dd>The component that builds and files tools, and can run one by name.</dd>
+            <dt>retry</dt>
+            <dd>Sending the same request again after a failure that might not repeat.</dd>
+            <dt>role</dt>
+            <dd>Who a message came from: me, the model, or the result of a tool.</dd>
+            <dt>runner</dt>
+            <dd>The file I actually execute; the assembly point for everything else.</dd>
+            <dt>schema</dt>
+            <dd>A declaration of what arguments a tool accepts and what type each one is. It declares the blanks; the
+                model fills them.</dd>
+            <dt>stateless</dt>
+            <dd>Holding nothing between calls. The model is stateless between requests, which is why the whole
+                conversation is re-sent every trip.</dd>
+            <dt>status code</dt>
+            <dd>The number in a reply meaning fine, or a named kind of not-fine: wrong key, too fast, server busy.</dd>
+            <dt>stop_reason</dt>
+            <dd>The flag in a reply saying why the model stopped. Either it wants a tool run, or it is finished.</dd>
+            <dt>system prompt</dt>
+            <dd>A standing instruction sent with every request, telling the model who it is being.</dd>
+            <dt>token</dt>
+            <dd>The chunk of text a model is billed by — roughly three-quarters of a word.</dd>
+            <dt>tool</dt>
+            <dd>One thing my program is willing to do: a description the model sees, and code the model never sees.</dd>
+            <dt>YAML</dt>
+            <dd>A plain-text format for settings, using indentation to show what belongs inside what.</dd>
+        </dl>
+
+        <footer>
+            docs/study_notes/w1_tool_use_round_trip.html · Claude Code Camp 2026 Q2 · personal learning note<br>
+            Living document. Current through lesson 04 API Client. The stop marker sits at t19.
+        </footer>
+
+    </div>
+</body>
+
+</html>
