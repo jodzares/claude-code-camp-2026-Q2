@@ -39,3 +39,18 @@ pre-vocabularied. Max one new idiom per receipt.
 | `"#{a} #{b}"` | string interpolation — drop values into a string | `f"{a} {b}"` | w1 Prompt Builder Ruby |
 | `value.inspect` | render a value with its quotes/type visible, for error messages | `repr(value)` | w1 Prompt Builder Ruby |
 | `JSON.pretty_generate(x)` | turn data into indented JSON text | `json.dumps(x, indent=2)` | w1 Prompt Builder Ruby |
+| `Net::HTTP.new(host, port)` + `http.request(req)` | send an HTTP request using only what ships with the language | `urllib.request.urlopen(Request(...))` | w1 API Client Python Port |
+| `http.request` hands back a response for every status code | the sender treats "server said 500" as a normal answer | `urlopen` **raises** `HTTPError` for non-2xx — the status only exists inside a catcher | w1 API Client Python Port |
+| `rescue *TRANSIENT_ERRORS => e` | catch any error from a named list, splatted in | `except TRANSIENT_ERRORS as e` (a tuple, no splat needed) | w1 API Client Python Port |
+| `[408, 429, 500].freeze` | a fixed list used only for membership checks | `{408, 429, 500}` — a set literal | w1 API Client Python Port |
+| `response.is_a?(Net::HTTPSuccess)` | ask whether the status means success | `200 <= status < 300` | w1 API Client Python Port |
+| `JSON.parse(str)` | turn JSON text into navigable data | `json.loads(str)` | w1 API Client Python Port |
+| `hash.to_json` | turn data into JSON text ready to send | `json.dumps(data).encode("utf-8")` — bytes, not text, for the request body | w1 API Client Python Port |
+| `sleep 0.5` | pause this thread | `time.sleep(0.5)` | w1 API Client Python Port |
+| `loop do ... break ... end` | repeat until something breaks out | `while True: ... break` | w1 API Client Python Port |
+| `URI(url_string)` | parse a URL into its parts before sending | not needed — `urllib.request.Request` takes the URL string directly | w1 API Client Python Port |
+| `Errno::ECONNRESET`, `Errno::ECONNREFUSED` | OS-level connection faults, one name per error code | `ConnectionError` — one parent covering reset, refused, aborted, broken pipe | w1 API Client Python Port |
+| `Net::OpenTimeout`, `Net::ReadTimeout`, `Timeout::Error` | connect timeout, read timeout, generic timeout | `TimeoutError` — Python doesn't split connect from read at the type level | w1 API Client Python Port |
+| `SocketError` | broad socket/address failure, in practice DNS | `socket.gaierror` — the exact DNS-lookup failure | w1 API Client Python Port |
+| `OpenSSL::SSL::SSLError` | TLS handshake or negotiation failure | `ssl.SSLError` | w1 API Client Python Port |
+| (no equivalent) | chain a new error to the one that caused it, preserving context | `raise ApiError(...) from e` | w1 API Client Python Port |
